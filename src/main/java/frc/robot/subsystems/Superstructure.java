@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import edu.wpi.first.wpilibj.Timer;
+
 import frc.robot.loops.ILooper;
 import frc.robot.loops.Loop;
 import frc.robot.subsystems.requests.Request;
@@ -25,14 +27,12 @@ public class Superstructure extends Subsystem {
     private static Superstructure mInstance = null;
 
     public static Superstructure getInstance() {
-        if (mInstance == null) {
+        if(mInstance == null) {
             mInstance = new Superstructure();
         }
         return mInstance;
     }
 
-    private ExampleSoftSubsystem exampleSoftSubsystem;
-    private ExampleHardSubsystem exampleHardSubsystem;
 
     private RequestList activeRequests;
     private ArrayList<RequestList> queuedRequests;
@@ -42,24 +42,12 @@ public class Superstructure extends Subsystem {
     private boolean activeRequestsCompleted = false;
     private boolean allRequestsCompleted = false;
 
+
     private Superstructure() {
-        exampleSoftSubsystem = ExampleSoftSubsystem.getInstance();
-        exampleHardSubsystem = ExampleHardSubsystem.getInstance();
+
         queuedRequests = new ArrayList<>(0);
     }
 
-    public void exampleSubRoutine() {
-        //Link together Subsystems into a synchronized action to be run during auto OR teleop here using Requests
-        setActiveRequests(new RequestList(
-            Arrays.asList(
-                exampleSoftSubsystem.ExampleRequest(),
-                exampleHardSubsystem.ExampleRequest()
-            ), false));
-    }
-
-
-    
-    //Superstructure-based logic. Don't worry about what goes on down here. Most methods are self-explanatory.
     public boolean requestsCompleted() {
         return allRequestsCompleted;
     }
@@ -138,6 +126,8 @@ public class Superstructure extends Subsystem {
         setQueuedRequests(lists);
     }
 
+     
+
     @Override
     public void registerEnabledLoops(ILooper mEnabledLooper) {
         mEnabledLooper.register(new Loop() {
@@ -145,8 +135,9 @@ public class Superstructure extends Subsystem {
             @Override
             public void onStart(double timestamp) {
                 stop();
+                clearRequests();
             }
-
+    
             @Override
             public void onLoop(double timestamp) {
                 synchronized (Superstructure.this) {
@@ -194,15 +185,15 @@ public class Superstructure extends Subsystem {
                             allRequestsCompleted = true;
                         }
                     }
-
+    
                 }
             }
-
+    
             @Override
             public void onStop(double timestamp) {
-
+                
             }
-
+    
         });
     }
 
@@ -211,9 +202,34 @@ public class Superstructure extends Subsystem {
         queuedRequests.clear();
     }
 
+    public RequestList disabledRequest() {
+        return new RequestList(Arrays.asList(), true);
+    }
+
+
+    public Request waitRequest(double seconds) {
+        return new Request() {
+            double startTime = 0;
+            double waitTime = 1;
+
+            @Override
+            public void act() {
+                startTime = Timer.getFPGATimestamp();
+                waitTime = seconds;
+            }
+
+            @Override
+            public boolean isFinished() {
+                return (Timer.getFPGATimestamp() - startTime) >= waitTime;
+            }
+        };
+    }
+
+
+
     @Override
     public void stop() {
-        
+        setActiveRequests(disabledRequest());
     }
 
     @Override
@@ -226,8 +242,6 @@ public class Superstructure extends Subsystem {
 
     }
 
-    public boolean isAtDesiredState() {
-        return false;
-    }
+
 
 }

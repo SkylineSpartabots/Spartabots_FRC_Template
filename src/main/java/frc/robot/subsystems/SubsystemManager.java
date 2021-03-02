@@ -15,10 +15,7 @@ import frc.robot.loops.ILooper;
 import frc.robot.loops.Loop;
 import frc.robot.loops.Looper;
 
-/**
- * SubsystemManager takes in a list of classes that extend the abstract class "Subsystem".
- * This class is able to call the abstract methods contained within the "Subsystem" class on EVERY subsystem within the "mAllSubsystems" list.
- */
+
 public class SubsystemManager implements ILooper {
     public static SubsystemManager mInstance = null;
 
@@ -44,11 +41,13 @@ public class SubsystemManager implements ILooper {
     }
 
     public boolean checkSubsystems() {
-        boolean areAllOk = true;
+        boolean ret_val = true;
+
         for (Subsystem s : mAllSubsystems) {
-            areAllOk &= s.checkSystem();
+            ret_val &= s.checkSystem();
         }
-        return areAllOk;
+
+        return ret_val;
     }
 
     public void stop() {
@@ -95,26 +94,11 @@ public class SubsystemManager implements ILooper {
         public void onStop(double timestamp) {}
     }
 
-    /**
-     * Goes through every subsystem in the mAllSubsystems list and, if the registerEnabledLoops method within the subsystem is set up correctly, 
-     * adds the Loop within it to the mLoops list. Now, within the class "EnabledLoop" (which implements Loop) which is found in the SubsystemManager class,
-     * the onStart, onLoop, and onStop of each Loop in mLoops is called in the onStart, onLoop, and onStop of EnabledLoop. Finally, "enabledLooper", the argument for this method,
-     * registers this "EnabledLoop" class to itself. So when the onLoop of EnabledLoop is called by enabledLooper, it calls the onLoop of every subsystem. The inner workings of enabledLooper
-     * have to do with runnables and threads. The methods that are used in Robot are the "start" and "stop" methods. Yes this is very confusing. Reach out to
-     * a software board memeber if you need help.
-     * 
-     * @see SubsystemManager SubsystemManager Class
-     * @see Looper Looper Class
-     */
     public void registerEnabledLoops(Looper enabledLooper) {
         mAllSubsystems.forEach(s -> s.registerEnabledLoops(this));
         enabledLooper.register(new EnabledLoop());
     }
 
-    /**
-     * Registers the DisabledLoop class located within SubsystemManager to the argument Looper passed in.
-     * @see DisabledLoop DisabledLoop CLass
-     */
     public void registerDisabledLoops(Looper disabledLooper) {
         disabledLooper.register(new DisabledLoop());
     }

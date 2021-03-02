@@ -134,7 +134,7 @@ public class Xbox extends XboxController {
             if(buttonNumber > 0) {
                 buttonCheck = getRawButton(buttonNumber);
             } else {
-                switch(buttonNumber) {
+                switch(buttonNumber) { //TODO: Add logic for pov other mid points
                     case LEFT_TRIGGER:
                         buttonCheck = getTriggerAxis(Hand.kLeft) > TRIGGER_PRESS_THRESHOLD;
                         break;
